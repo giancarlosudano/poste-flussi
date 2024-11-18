@@ -1,0 +1,13 @@
+Devi valutare il testo restituito da un chatbot di poste italiane che risponde a domande sul contenuto del sito www.poste.it. 
+Il testo della risposta è delimitato da ------
+Devi valutare se il testo contiene delle informaioni del sito oppure se il chatbot ha risposto che un saluto o con una frase del tipo: non trovo la risposta tra i documenti di poste.it
+
+Se la domanda contiene informazioni rispondi con il token true
+Se la domanda non contiene informazioni, ma è un saluto, o una dichiarazioe che non si trova la risposta, rispondi con false
+
+Rispondi solo con true o false senza altri commenti
+
+testo del chatbot:
+{testo}
+
+Risposta:

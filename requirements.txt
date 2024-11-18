@@ -1,0 +1,33 @@
+#Python Generic
+python-dotenv==1.0.0
+chardet==5.2.0
+
+#bs4
+beautifulsoup4==4.12.3
+lxml==5.1.0
+markdownify==0.11.6
+
+#Open AI
+openai==1.30.1
+
+#Langchain
+langchain==0.2.0
+langchain-community==0.2.0
+langchain-experimental==0.0.59
+langchain-openai==0.1.7
+langgraph==0.0.53
+langchainhub==0.1.15
+langchain-text-splitters==0.2.0
+
+#Streamlit
+streamlit==1.34.0
+streamlit-authenticator==0.3.2
+extra-streamlit-components==0.1.71
+streamlit-mic-recorder==0.0.8
+
+# azure
+azure-storage-blob==12.19.0
+azure-identity==1.15.0
+azure-search-documents==11.4.0
+azure-ai-documentintelligence==1.0.0b3
+opencensus-ext-azure==1.1.13
