@@ -214,13 +214,17 @@ try:
 
 			prompt = ChatPromptTemplate.from_messages(
 				[
-					("system", "Sei un assistente digitale di Poste Italiane, che risponde a domande sul malfuzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti."),
+					("system", "Sei un assistente digitale di Poste Italiane, che risponde a domande sul malfuzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti. Devi far finta di essere un operatore che segue il diagramma, e per ogni domanda del diagramma, devi attendere la rispost dell'utente e continuare con il ramo corretto del diagramma"),
 					(
 						"user",
 						[
 							{
 								"type": "image_url",
 								"image_url": {"url": "data:image/jpeg;base64,{image_data}"},
+							},
+							{
+								"type": "text",
+								"text": flusso1_text,
 							},
 							{
 								"type": "text",
