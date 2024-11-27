@@ -187,56 +187,63 @@ Verificare con il cliente che tipo di problema riscontra:
 
 try:
 	load_dotenv()
-	st.set_page_config(page_title="Chat con Poste Search", page_icon=os.path.join('images','favicon.ico'), layout="wide", menu_items=None)
-	st.title("Chat con 'Poste Search'")
+	st.set_page_config(page_title="Call Center Assistant", page_icon=os.path.join('images','favicon.ico'), layout="wide", menu_items=None)
+	st.title("Call Center Assistant")
 	st.sidebar.image(os.path.join('images','logo-poste.png'), use_column_width=True)
 
-	if st.session_state['authentication_status']:
-		pass
-	elif not st.session_state['authentication_status']:
-		st.warning('Username/password is incorrect')
-		st.stop()
-	elif st.session_state['authentication_status'] is None:
-		st.warning('Please enter your username and password')
-		st.stop()
+	if st.sidebar.button("Nuova chat"):
+			st.session_state.messages = []
+			st.rerun()
+
+	with open(os.path.join('images', 'flusso01.jpg'), "rb") as image_file:
+		image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+	if "messages" not in st.session_state:
+		st.session_state.messages = []
+
+	for message in st.session_state.messages:
+		if message["role"] == "assistant":
+			with st.chat_message(message["role"], avatar=os.path.join('images','pt-avatar.png')):
+				st.markdown(message["content"])
+		else:
+			with st.chat_message(message["role"]):
+				st.markdown(message["content"])
 
 	if question := st.chat_input("Chiedi informazioni al bot", key="chat_input"):
 		
 		with st.chat_message("user"):
 			st.markdown(question)
 
-		with st.spinner("elaborazione risposta..."):
+			question_expanded = "Informazioni addizionali:" + flusso1_text + "\n" + question 
 
-			with open(os.path.join('images', 'flusso01.jpg'), "rb") as image_file:
-				image_data = base64.b64encode(image_file.read()).decode("utf-8")
+		with st.spinner("elaborazione risposta..."):
 
 			llm = lc_hlp.get_gpt(streaming=False, temperature=0.0)
 
-			prompt = ChatPromptTemplate.from_messages(
-				[
-					("system", "Sei un assistente digitale di Poste Italiane, che risponde a domande sul malfuzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti."),
-					(
-						"user",
-						[
-							{
-								"type": "image_url",
-								"image_url": {"url": "data:image/jpeg;base64,{image_data}"},
-							},
-							{
-								"type": "text",
-								"text": question,
-							}
-						],
-					),
-				]
-			)
+			system_message = """Sei un assistente di Poste Italiane, che aiuta un'operatore call center a risponde a domande sul malfunzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.
+Rispetto al diagramma fornito devi simulare una discussione con l'utente finale percorrendo i vari step a partire dallo step 0 "Guasto apparecchio". 
+Proponi le domande step by step e aspetti la risposta dell'utente. Lo devi guidare nel percorso del diagramma e devi fornire informazioni addizionali 
+Le tue indicazioni devono essere prese solamente dai documenti forniti.
+"""
+
+			messages = [("system", "Sei un assistente digitale di Poste Italiane, che risponde a domande sul malfuzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.")]
+
+			for msg in st.session_state.messages:
+				messages.append((msg["role"], msg["content"]))
+
+			messages.append(("user", [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}, {"type": "text", "text": question_expanded}]))
+
+			prompt = ChatPromptTemplate.from_messages(messages)
 
 			chain = prompt | llm
 			response = chain.invoke({"image_data": image_data})
 
 			with st.chat_message("assistant", avatar=os.path.join('images','pt-avatar.png')):
 				st.markdown(response.content)
-				st.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
+				# st.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
+			
+			st.session_state.messages.append({"role": "user", "content": question})
+			st.session_state.messages.append({"role": "assistant", "content": response.content})
 
 except Exception:
 	st.error(traceback.format_exc())
