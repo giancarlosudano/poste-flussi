@@ -190,6 +190,7 @@ try:
 	st.set_page_config(page_title="Call Center Assistant", page_icon=os.path.join('images','favicon.ico'), layout="wide", menu_items=None)
 	st.title("Call Center Assistant")
 	st.sidebar.image(os.path.join('images','logo-poste.png'), use_column_width=True)
+	st.sidebar.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
 
 	if st.sidebar.button("Nuova chat"):
 			st.session_state.messages = []
@@ -226,7 +227,7 @@ Proponi le domande step by step e aspetti la risposta dell'utente. Lo devi guida
 Le tue indicazioni devono essere prese solamente dai documenti forniti.
 """
 
-			messages = [("system", "Sei un assistente digitale di Poste Italiane, che risponde a domande sul malfuzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.")]
+			messages = [("system", system_message)]
 
 			for msg in st.session_state.messages:
 				messages.append((msg["role"], msg["content"]))
@@ -240,7 +241,6 @@ Le tue indicazioni devono essere prese solamente dai documenti forniti.
 
 			with st.chat_message("assistant", avatar=os.path.join('images','pt-avatar.png')):
 				st.markdown(response.content)
-				# st.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
 			
 			st.session_state.messages.append({"role": "user", "content": question})
 			st.session_state.messages.append({"role": "assistant", "content": response.content})
