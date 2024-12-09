@@ -189,7 +189,6 @@ try:
 	load_dotenv()
 	st.set_page_config(page_title="Call Center Assistant", page_icon=os.path.join('images','favicon.ico'), layout="wide", menu_items=None)
 	st.title("Call Center Assistant")
-	st.sidebar.image(os.path.join('images','logo-poste.png'), use_column_width=True)
 	st.sidebar.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
 
 	if st.sidebar.button("Nuova chat"):
@@ -221,11 +220,15 @@ try:
 
 			llm = lc_hlp.get_gpt(streaming=False, temperature=0.0)
 
-			system_message = """Sei un assistente di Poste Italiane, che aiuta un'operatore call center a risponde a domande sul malfunzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.
-Rispetto al diagramma fornito devi simulare una discussione con l'utente finale percorrendo i vari step a partire dallo step 0 "Guasto apparecchio". 
-Proponi le domande step by step e aspetti la risposta dell'utente. Lo devi guidare nel percorso del diagramma e devi fornire informazioni addizionali 
-Le tue indicazioni devono essere prese solamente dai documenti forniti.
-"""
+			system_message = """Sei un assistente di Poste Italiane, che aiuta un'operatore call center a fare le domande corrette sul malfunzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.
+- Percorri le domande del diagramma a partire dalla domanda successiva allo step 0 "Guasto apparecchio".
+- Le domande sono contrassegnate dai rombi e hanno come possibilie risposta Si o No.  
+- Proponi le domande step by step e aspetta la risposta dell'utente.
+- Quanto l'utente risponde si o no devi percorrere il diagramma seguendo le frecce con l'etichetta corretta "Si" o "No".
+- Devi guidare l'operatore del call center nel percorso del diagramma e devi fornire informazioni addizionali ove possibile.
+- Le tue indicazioni devono essere prese solamente dai documenti forniti.
+- Le tue domande devono essere solo quelle del diagramma fornito.
+- Ragiona step by step, descrivi la porzione di diagramma rilevante per la risposta e scrivi il motivo tra parentesi."""
 
 			messages = [("system", system_message)]
 
