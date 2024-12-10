@@ -32,7 +32,6 @@ La tutela della vostra privacy e la sicurezza delle vostre informazioni sono per
 		config['cookie']['expiry_days']
 	)
 	authenticator.logout(location='sidebar')
-	
 	authenticator.login(location='main')
 	
 	if st.session_state['authentication_status']:

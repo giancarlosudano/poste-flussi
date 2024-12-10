@@ -10,6 +10,17 @@ from langchain_core.prompts import ChatPromptTemplate
 import base64
 
 
+system_message = """Sei un assistente di Poste Italiane, che aiuta un'operatore call center a fare le domande corrette sul malfunzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.
+- Percorri le domande del diagramma a partire dalla domanda successiva allo step 0 "Guasto apparecchio".
+- Le domande sono contrassegnate dai rombi e hanno come possibilie risposta Si o No.  
+- Proponi le domande step by step e aspetta la risposta dell'utente.
+- Quando l'utente risponde si o no devi percorrere il diagramma seguendo le frecce con l'etichetta corretta "Si" o "No".
+- Quando attraversi il diagramma devi fornire informazioni addizionali fornite in contesto per ogni rettangolo usando l'ID corrispondente.
+- Devi guidare l'operatore del call center nel percorso del diagramma e devi fornire informazioni addizionali ove possibile.
+- Le tue indicazioni devono essere prese solamente dai documenti forniti.
+- Le tue domande devono essere solo quelle del diagramma fornito.
+- Ragiona step by step, descrivi la porzione di diagramma rilevante per la risposta e scrivi il motivo tra parentesi."""
+
 flusso1_text = """ID (start)
 Attività: GUASTO APPARECCHIO 
 Descrizione:
@@ -158,7 +169,7 @@ di GNP in corso non viene recepita se la chiamata viene
 ricevuta sul numero da portare. La modifica sarà attiva
 solo a GNP completa
 
-ID 12 
+ID 12
 Attività: RESET TELEFONO
 Descrizione: L’operatore invita il cliente ad eseguire il ripristino delle
 impostazioni iniziali del telefono:
@@ -185,6 +196,19 @@ Verificare con il cliente che tipo di problema riscontra:
 - Ricevere chiamate"""
 
 
+def prepare_messages(system_message, image_data, question_expanded):
+	# system
+    messages = [("system", system_message)]
+
+	# message history
+    for msg in st.session_state.messages:
+        messages.append((msg["role"], msg["content"]))
+
+	# last message + context + image
+    messages.append(("user", [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}, 
+                        {"type": "text", "text": question_expanded}]))
+    return messages
+
 try:
 	load_dotenv()
 	st.set_page_config(page_title="Call Center Assistant", page_icon=os.path.join('images','favicon.ico'), layout="wide", menu_items=None)
@@ -192,8 +216,10 @@ try:
 	st.sidebar.image(os.path.join('images','flusso01.jpg'), use_column_width=True)
 
 	if st.sidebar.button("Nuova chat"):
-			st.session_state.messages = []
-			st.rerun()
+		st.session_state.messages = []
+		st.rerun()
+
+	llm = lc_hlp.get_gpt(streaming=False, temperature=0.0)
 
 	with open(os.path.join('images', 'flusso01.jpg'), "rb") as image_file:
 		image_data = base64.b64encode(image_file.read()).decode("utf-8")
@@ -214,31 +240,12 @@ try:
 		with st.chat_message("user"):
 			st.markdown(question)
 
-			question_expanded = "Informazioni addizionali:" + flusso1_text + "\n" + question 
-
 		with st.spinner("elaborazione risposta..."):
 
-			llm = lc_hlp.get_gpt(streaming=False, temperature=0.0)
-
-			system_message = """Sei un assistente di Poste Italiane, che aiuta un'operatore call center a fare le domande corrette sul malfunzionamento del servizio PMCASA mediante l'uso di diagrammi e documenti che ti verranno forniti.
-- Percorri le domande del diagramma a partire dalla domanda successiva allo step 0 "Guasto apparecchio".
-- Le domande sono contrassegnate dai rombi e hanno come possibilie risposta Si o No.  
-- Proponi le domande step by step e aspetta la risposta dell'utente.
-- Quanto l'utente risponde si o no devi percorrere il diagramma seguendo le frecce con l'etichetta corretta "Si" o "No".
-- Devi guidare l'operatore del call center nel percorso del diagramma e devi fornire informazioni addizionali ove possibile.
-- Le tue indicazioni devono essere prese solamente dai documenti forniti.
-- Le tue domande devono essere solo quelle del diagramma fornito.
-- Ragiona step by step, descrivi la porzione di diagramma rilevante per la risposta e scrivi il motivo tra parentesi."""
-
-			messages = [("system", system_message)]
-
-			for msg in st.session_state.messages:
-				messages.append((msg["role"], msg["content"]))
-
-			messages.append(("user", [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}}, {"type": "text", "text": question_expanded}]))
+			question_expanded = "Informazioni addizionali:" + flusso1_text + "\n" + question
+			messages = prepare_messages(system_message, image_data, question_expanded)
 
 			prompt = ChatPromptTemplate.from_messages(messages)
-
 			chain = prompt | llm
 			response = chain.invoke({"image_data": image_data})
 
